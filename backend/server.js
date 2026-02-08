@@ -191,6 +191,15 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
+// Serve static frontend (only in production)
+const frontendPath = path.join(__dirname, "../frontend/dist");
+app.use(express.static(frontendPath));
+
+// SPA fallback – must come after API routes
+app.get("*", (req, res) => {
+  res.sendFile(path.join(frontendPath, "index.html"));
+});
+
 app.listen(PORT, () => {
   console.log(`Backend running at http://localhost:${PORT}`);
 });
