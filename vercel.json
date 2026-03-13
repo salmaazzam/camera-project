@@ -1,0 +1,18 @@
+{
+  "buildCommand": "cd frontend && npm install && npm run build",
+  "outputDirectory": "frontend/dist",
+  "functions": {
+    "api/insert-image.js": {
+      "includeFiles": "api/_lib/**",
+      "maxDuration": 30
+    },
+    "api/images-to-pdf.js": {
+      "includeFiles": "api/_lib/**",
+      "maxDuration": 30
+    },
+    "api/add-to-existing-pdf.js": {
+      "includeFiles": "api/_lib/**",
+      "maxDuration": 30
+    }
+  }
+}

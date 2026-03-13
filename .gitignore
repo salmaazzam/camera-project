@@ -32,3 +32,4 @@ uploads/
 # Cache
 .cache/
 *.tsbuildinfo
+.vercel
