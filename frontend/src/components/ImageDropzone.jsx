@@ -13,6 +13,49 @@ function FileThumb({ file }) {
 }
 
 const API_BASE = "/api";
+const MAX_UPLOAD_BYTES = 4 * 1024 * 1024; // 4 MB — stay under Vercel's 4.5 MB body limit
+const MAX_DIMENSION = 3000;
+
+function compressImage(file, quality = 0.85) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      let { width, height } = img;
+
+      if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+        const ratio = Math.min(MAX_DIMENSION / width, MAX_DIMENSION / height);
+        width = Math.round(width * ratio);
+        height = Math.round(height * ratio);
+      }
+
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) return reject(new Error("Compression failed"));
+          resolve(new File([blob], file.name, { type: "image/jpeg" }));
+        },
+        "image/jpeg",
+        quality
+      );
+    };
+    img.onerror = () => reject(new Error("Failed to load image"));
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+async function ensureUnderLimit(file) {
+  if (file.size <= MAX_UPLOAD_BYTES) return file;
+
+  for (const q of [0.8, 0.6, 0.4, 0.25]) {
+    const compressed = await compressImage(file, q);
+    if (compressed.size <= MAX_UPLOAD_BYTES) return compressed;
+  }
+  return compressImage(file, 0.2);
+}
 
 export default function ImageDropzone({ onSuccess, onError, onReset }) {
   const [loading, setLoading] = useState(false);
@@ -44,8 +87,9 @@ export default function ImageDropzone({ onSuccess, onError, onReset }) {
     onReset?.();
 
     try {
+      const imageToUpload = await ensureUnderLimit(file);
       const formData = new FormData();
-      formData.append("image", file);
+      formData.append("image", imageToUpload);
 
       const res = await fetch(`${API_BASE}/insert-image`, {
         method: "POST",
