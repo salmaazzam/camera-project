@@ -5,6 +5,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs/promises";
 import { PDFDocument } from "pdf-lib";
+import sharp from "sharp";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -17,9 +18,9 @@ const TEMPLATE_PDF_PATH = path.join(__dirname, "template.pdf");
 // Target area for image insertion (PDF points: origin bottom-left, 72pt = 1 inch)
 // Tweak these to match the white box in your template
 const IMAGE_PLACEMENT = {
-  x: 0,      // left edge of white box
+  x: 333,      // left edge of white box
   y: 335,      // bottom edge of white box
-  width: 1600,  // width of white box
+  width: 534,  // width of white box
   height: 625, // height of white box
 };
 
@@ -39,14 +40,21 @@ app.use(cors({ origin: "http://localhost:5173" }));
 app.use(express.json());
 
 /**
- * Embed image buffer into PDF doc. PDF-Lib supports JPEG and PNG natively.
+ * Auto-rotate based on EXIF orientation and return a JPEG buffer that
+ * pdf-lib can embed without any rotation surprises.
  */
+async function normalizeImage(buffer) {
+  const rotated = await sharp(buffer).rotate().toBuffer();
+  const { width, height } = await sharp(rotated).metadata();
+  if (width > height) {
+    return sharp(rotated).rotate(90).jpeg().toBuffer();
+  }
+  return sharp(rotated).jpeg().toBuffer();
+}
+
 async function embedImage(pdfDoc, buffer, mimetype) {
-  const isPng = /png/i.test(mimetype);
-  const image = isPng
-    ? await pdfDoc.embedPng(buffer)
-    : await pdfDoc.embedJpg(buffer);
-  return image;
+  const normalized = await normalizeImage(buffer);
+  return pdfDoc.embedJpg(normalized);
 }
 
 /**
