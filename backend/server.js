@@ -18,10 +18,10 @@ const TEMPLATE_PDF_PATH = path.join(__dirname, "template.pdf");
 // Target area for image insertion (PDF points: origin bottom-left, 72pt = 1 inch)
 // Tweak these to match the white box in your template
 const IMAGE_PLACEMENT = {
-  x: 333,      // left edge of white box
-  y: 335,      // bottom edge of white box
-  width: 534,  // width of white box
-  height: 625, // height of white box
+  x: 130,      // left edge of white box
+  y: 235,      // bottom edge of white box
+  width: 600,  // width of white box
+  height: 450, // height of white box
 };
 
 // Multer config - memory storage (we process in memory)

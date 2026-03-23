@@ -8,10 +8,10 @@ const TEMPLATE_PDF_PATH = path.join(process.cwd(), "api/_lib/template.pdf");
 
 // Target area for image insertion (PDF points: origin bottom-left, 72pt = 1 inch)
 const IMAGE_PLACEMENT = {
-  x: 333,
-  y: 335,
-  width: 534,
-  height: 625,
+  x: 130,      // left edge of white box
+  y: 235,      // bottom edge of white box
+  width: 600,  // width of white box
+  height: 450, // height of white box
 };
 
 const upload = multer({
